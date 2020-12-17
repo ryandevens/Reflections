@@ -13,7 +13,10 @@
 DelayFeel::DelayFeel()
 {
     
-    setColour(juce::Slider::rotarySliderFillColourId, Colours::skyblue);
+    setColour(juce::Slider::rotarySliderFillColourId, Colours::orange);
+    setColour(juce::TextButton::textColourOnId, Colours::orange);
+    setColour(juce::TextButton::textColourOffId, Colours::orange.darker());
+    setColour(juce::TextButton::buttonColourId, Colours::black);
     
     
     
@@ -66,44 +69,63 @@ void DelayFeel::drawRotarySlider (Graphics& g, int x, int y, int width, int heig
     
    
 }
-//void DelayFeel::drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour,
-//                                          bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-//{
-//
-//    juce::Rectangle<int> rect;
-//    rect.setSize(100, 100);
-//    g.setColour(Colours::red);
-//    g.drawRect(rect);
-//
-//}
-void DelayFeel::drawToggleButton(Graphics& g, ToggleButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-{
-    Rectangle<float> area = button.getLocalBounds().toFloat();
 
+void DelayFeel::drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour,
+                                     bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    auto area = button.getLocalBounds().toFloat();
     
-    if (button.getToggleState())
+    if(button.getToggleState())
     {
-        g.setColour(Colours::skyblue.withAlpha(0.7f));
-        g.fillRoundedRectangle(area, 10.0f);
-        
+        g.setColour(button.findColour(TextButton::buttonColourId));
+        g.setColour(Colours::orange.brighter());
+        g.drawRoundedRectangle(area, 2.f, 1.f);
+        g.setColour(Colours::orange.brighter(0.9f).withAlpha(0.2f));
     } else
     {
-        g.setColour(Colours::skyblue.withAlpha(1.0f));
-        g.drawRoundedRectangle(area, 10.0f, 1.0f);
+        g.setColour(button.findColour(TextButton::buttonOnColourId));
+        g.setColour(Colours::orange.darker(0.8f));
+        g.drawRoundedRectangle(area, 2.f, 1.f);
+        g.setColour(Colours::orange.withAlpha(0.2f));
         
     }
     
+    g.fillAll();
+}
+
+Font DelayFeel::getTextButtonFont (TextButton& button, int buttonHeight)
+{
+    return getFont();
+}
+
+
+
+juce::Slider::SliderLayout DelayFeel::getSliderLayout(Slider& slider)
+{
+    Slider::SliderLayout layout;
+    auto bounds = slider.getLocalBounds();
     
+    Rectangle<int> textBox = bounds.removeFromBottom (15);
+    textBox.setCentre(35, 53);
+    layout.textBoxBounds = textBox;
+    layout.sliderBounds  = bounds;
+    
+//    layout.sliderBounds = Rectangle<int> (0, 0, 75, 75);
+//    layout.textBoxBounds = Rectangle<int> (0, 50, 75, 10);
+
+    return layout;
 }
 
 Label* DelayFeel::createSliderTextBox(Slider& slider)
 {
     Label* l = LookAndFeel_V4::createSliderTextBox(slider);
     
+    
+    
     // make sure editor text is black (so it shows on white background)
     //l->setColour(juce::Label::outlineColourId, Colours::white.withAlpha(0.0f));
-    l->setColour(juce::Slider::textBoxBackgroundColourId, Colours::orange.brighter());
-    l->setColour(juce::Label::textColourId, Colours::orange.brighter());
+    l->setColour(juce::Slider::textBoxBackgroundColourId, Colours::orange);
+    l->setColour(juce::Label::textColourId, Colours::orange);
     
     return l;
 }
@@ -114,6 +136,8 @@ Font DelayFeel::getLabelFont(Label& label)
 {
     return getFont();
 }
+
+
 
 
 

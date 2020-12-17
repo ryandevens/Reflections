@@ -11,24 +11,24 @@
 #pragma once
 #include <JuceHeader.h>
 
-class  DelayFeel : public juce::LookAndFeel_V4
+class  VerbFeel : public juce::LookAndFeel_V4
 {
 public:
-    DelayFeel();
-    ~DelayFeel();
+    VerbFeel();
+    ~VerbFeel();
     
     void drawRotarySlider (Graphics&, int x, int y, int width, int height, float sliderPosProportional,
                            float rotaryStartAngle, float rotaryEndAngle, Slider&) override;
-    
+   
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour,
                               bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
     
     Font getTextButtonFont (TextButton& button, int buttonHeight) override;
     
+//    void drawToggleButton(Graphics&, ToggleButton&,
+//                          bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
     
-    juce::Slider::SliderLayout getSliderLayout(Slider& slider) override;
-    
-    //Label* createSliderTextBox(Slider&) override;
+    juce::Slider::SliderLayout getSliderLayout(Slider&) override;
     Label* createSliderTextBox(Slider&) override;
     Font getLabelFont(Label&) override;
     
@@ -39,11 +39,6 @@ private:
         return Font ("Consolas", "Regular", 11.f);
     }
     
-    Font getButtonFont()
-    {
-        return Font ("Consolas", "Regular", 11.f);
-    }
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayFeel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VerbFeel)
 };
 

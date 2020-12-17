@@ -9,12 +9,16 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "DelayProcessor.h"
+#include "ReverbProcessor.h"
+#include "TempoSync.h"
+//#include "Analyser.h"
 
 //==============================================================================
 /**
 */
-class ReflectionsAudioProcessor  : public juce::AudioProcessor,
-                                    public ValueTree::Listener
+class ReflectionsAudioProcessor  : public AudioProcessor,
+public ValueTree::Listener
 {
 public:
     //==============================================================================
@@ -53,23 +57,43 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    
+    void setVerbButtonState(bool state);
+    bool getVerbButtonState();
+    
+    void setDelayButtonState(bool state);
+    bool getDelayButtonState();
+    
+    void setSyncButtonState(bool state);
+    bool getSyncButtonState();
+    
     AudioProcessorValueTreeState apvts;
     AudioProcessorValueTreeState::ParameterLayout createParameters();
     
-    void setButtonState(bool state);
-    bool getButtonState();
-    
     void update();
-    
+
 private:
-    juce::Reverb reverb;
-    juce::Reverb::Parameters  reverbParameters;
+    ReverbProcessor     reverbProcessor;
+    DelayProcessor      delayProcessor;
     
-    double mSampleRate;
+    AudioPlayHead*                     playHead;
+    AudioPlayHead::CurrentPositionInfo currentPos;
+    TempoSync     tempoSync;
     
-    bool buttonState = false;
+    //Analyser<float>   outputAnalyser;
+    
+    
+    
+    Atomic<float> delayOutputLevel  { 0.0f };
+    Atomic<float> verbOutputLevel   { 0.0f };
+    Atomic<float> mix   { 0.0f };
+    
+    bool verbButtonState = false;
+    bool delayButtonState = false;
+    bool syncButtonState = false;
+    
     bool mustUpdateProcessing { false };
+    
     void valueTreePropertyChanged(ValueTree& tree, const Identifier& property) override
     {
         mustUpdateProcessing = true;

@@ -25,7 +25,6 @@ ReflectionsAudioProcessor::ReflectionsAudioProcessor()
     apvts.state.addListener (this);
 }
 
-
 ReflectionsAudioProcessor::~ReflectionsAudioProcessor()
 {
 }
@@ -95,14 +94,18 @@ void ReflectionsAudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void ReflectionsAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    mSampleRate = sampleRate;
-    reverb.setSampleRate(mSampleRate);
+    reverbProcessor.init(sampleRate, samplesPerBlock);
+    delayProcessor.init(sampleRate, samplesPerBlock);
+    
+    
     update();
 }
 
 void ReflectionsAudioProcessor::releaseResources()
 {
-    reverb.reset();
+    reverbProcessor.reset();
+    delayProcessor.reset();
+    //outputAnalyser.stopThread (1000);
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -135,16 +138,41 @@ void ReflectionsAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
     if (mustUpdateProcessing)
         update();
     
-    float* const left = buffer.getWritePointer(0);
-    float* const right = buffer.getWritePointer(1);
     
-    reverb.processStereo(left, right, buffer.getNumSamples());
+    // initially just buffers full of zeroes, then consider this the previous buffer
+    AudioBuffer<float>& dBufferPrev = delayProcessor.getPreviousDelayBuffer();
+    AudioBuffer<float>& vBufferPrev = reverbProcessor.getPreviousVerbBuffer();
+    
+    // process the audio buffer with the "previous" processorbuffer
+    delayProcessor.process(buffer, vBufferPrev);
+    reverbProcessor.process(buffer, dBufferPrev);
+    
+    AudioBuffer<float>& dBuffer = delayProcessor.getDelayBuffer();
+    AudioBuffer<float>& vBuffer = reverbProcessor.getVerbBuffer();
+
+    //buffer.clear();
+    buffer.applyGain(0, buffer.getNumSamples(), 1.f-mix.get());
+    for(int channel = 0; channel < totalNumOutputChannels; ++channel)
+    {
+        buffer.addFrom(channel, 0, dBuffer, channel, 0, buffer.getNumSamples(), delayOutputLevel.get() * mix.get());
+        buffer.addFrom(channel, 0, vBuffer, channel, 0, buffer.getNumSamples(), verbOutputLevel.get() * mix.get());
+    }
+    
+    // Here we store the previous buffer at the end of the process block to be ready for next block
+    delayProcessor.storePreviousBuffer();
+    reverbProcessor.storePreviousBuffer();
+    
+    if (syncButtonState)
+    {
+        playHead = this->getPlayHead();
+        playHead->getCurrentPosition(currentPos);
+        tempoSync.setTempo(currentPos.bpm, currentPos.timeSigNumerator, currentPos.timeSigDenominator);
+    }
+    
+    //outputAnalyser.addAudioData (buffer, 0, getTotalNumOutputChannels());
 }
 
 //==============================================================================
@@ -161,13 +189,20 @@ juce::AudioProcessorEditor* ReflectionsAudioProcessor::createEditor()
 //==============================================================================
 void ReflectionsAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-
+    juce::ValueTree copyState = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml = copyState.createXml();
+    copyXmlToBinary (*xml.get(), destData);
+    
 }
 
 void ReflectionsAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
- 
+    std::unique_ptr<juce::XmlElement> xml = getXmlFromBinary (data, sizeInBytes);
+    juce::ValueTree copyState = juce::ValueTree::fromXml (*xml.get());
+    apvts.replaceState (copyState);
 }
+
+
 
 //==============================================================================
 // This creates new instances of the plugin..
@@ -179,58 +214,139 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 void ReflectionsAudioProcessor::update()
 {
     mustUpdateProcessing = false;
-    auto bState = apvts.getRawParameterValue("button");
-    auto mix = apvts.getRawParameterValue("Mix");
-    auto dry = 1 - *mix;
+    
+    auto vButtonState = apvts.getRawParameterValue("Verb Freeze");
     auto size = apvts.getRawParameterValue("Size");
     auto damp = apvts.getRawParameterValue("Damping");
     auto wide = apvts.getRawParameterValue("Width");
     auto freeze = 0.0f;
     
-    if (*bState)
+    auto verbInput = apvts.getRawParameterValue("Verb Input");
+    auto verbOutput = apvts.getRawParameterValue("Verb Output");
+    auto verbSend = apvts.getRawParameterValue("Verb Send");
+    
+    verbOutputLevel = *verbOutput;
+    
+    if (*vButtonState)
         freeze = 1.0f;
     else
         freeze = 0.0f;
     
+    auto dButtonState = apvts.getRawParameterValue("Delay Link");
+    auto dSyncState = apvts.getRawParameterValue("Sync");
+    auto dTimeL = apvts.getRawParameterValue ("Time L");
+    auto feedbackL = apvts.getRawParameterValue("FB L");
+    auto dTimeR = apvts.getRawParameterValue ("Time R");
+    auto feedbackR = apvts.getRawParameterValue("FB R");
+    auto delayInput = apvts.getRawParameterValue("Delay Input");
+    auto delayOutput = apvts.getRawParameterValue("Delay Output");
+    auto delaySend = apvts.getRawParameterValue("Delay Send");
     
+    delayButtonState = *dButtonState;
+    syncButtonState = *dSyncState;
+    if (syncButtonState)
+    {
+        *dTimeL = tempoSync.getSyncDelayTime(*dTimeL);
+        *dTimeR = tempoSync.getSyncDelayTime(*dTimeR);
+    }
     
-    reverbParameters.wetLevel = *mix;
-    reverbParameters.dryLevel = dry;
-    reverbParameters.roomSize = *size;
-    reverbParameters.damping = *damp;
-    reverbParameters.width = *wide;
-    reverbParameters.freezeMode = freeze;
-    reverb.setParameters(reverbParameters);
+    delayProcessor.setParameters(*dTimeL, *dTimeR, *feedbackL, *feedbackR, *delayInput, *verbSend);
+    reverbProcessor.setParameters(*size, *damp, *wide, freeze, *verbInput, *delaySend, *dTimeL, *dTimeR);
+    
+    delayOutputLevel = *delayOutput;
+    
+    auto nMix = apvts.getRawParameterValue("Mix");
+    mix = *nMix;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ReflectionsAudioProcessor::createParameters()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> parameters;
     
-    parameters.push_back(std::make_unique<AudioParameterBool>("button", "button", false));
-    
-    parameters.push_back (std::make_unique<AudioParameterFloat>("Mix", "Mix",
-                        NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.0f));
+    /*------------------------------------------------------------------------*/
+    parameters.push_back(std::make_unique<AudioParameterBool>  ("Verb Freeze", "Verb Freeze", false));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Size", "Size",
-                        NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.0f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Damping", "Damping",
-                        NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.0f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Width", "Width",
-                        NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.0f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
     
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Verb Input", "Verb Input",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Verb Output", "Verb Output",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Verb Send", "Verb Send",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+    
+    /*------------------------------------------------------------------------*/
+    parameters.push_back(std::make_unique<AudioParameterBool>  ("Delay Link", "Delay Link", false));
+    
+    parameters.push_back(std::make_unique<AudioParameterBool>  ("Sync", "Sync", false));
+    
+    parameters.push_back(std::make_unique<AudioParameterFloat> ("Time L", "Delay Time L",
+                                                               NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 200.f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Time R", "Delay Time R",
+                                                                NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 200.f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("FB L", "Feedback L",
+                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.1f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("FB R", "Feedback R",
+                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.1f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Input", "Delay Input",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Output", "Delay Output",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+   
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Send", "Delay Send",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.1f));
+    
+    parameters.push_back (std::make_unique<AudioParameterFloat>("Mix", "Mix",
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.5f));
+    
+    /*------------------------------------------------------------------------*/
     return { parameters.begin(), parameters.end() };
 }
 
-void ReflectionsAudioProcessor::setButtonState(bool state)
+void ReflectionsAudioProcessor::setVerbButtonState(bool state)
 {
-    buttonState = state;
+    verbButtonState = state;
     
 }
 
-bool ReflectionsAudioProcessor::getButtonState()
+bool ReflectionsAudioProcessor::getVerbButtonState()
 {
-    return buttonState;
+    return verbButtonState;
 }
+
+void ReflectionsAudioProcessor::setDelayButtonState(bool state)
+{
+    delayButtonState = state;
+    
+}
+
+bool ReflectionsAudioProcessor::getDelayButtonState()
+{
+    return delayButtonState;
+}
+
+void ReflectionsAudioProcessor::setSyncButtonState(bool state)
+{
+    syncButtonState = state;
+
+}
+
+bool ReflectionsAudioProcessor::getSyncButtonState()
+{
+    return syncButtonState;
+}
+
