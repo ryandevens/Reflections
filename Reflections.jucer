@@ -1,18 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="rt8qlt" name="Reflections" projectType="audioplug" useAppConfig="0"
-              displaySplashScreen="1" companyName="invisibleSound">
-  <MAINGROUP id="KOOYOu" name="Reflections">
-    <GROUP id="{9F8F2FFD-12F4-F0D7-2686-3A3BFE1B21F8}" name="Source">
-      <FILE id="i7Rgti" name="PluginProcessor.cpp" compile="1" resource="0"
+<JUCERPROJECT id="nRYRfr" name="Reflections" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
+              companyName="Phonon" pluginVST3Category="Delay,Fx,Reverb" pluginVSTCategory="kPlugCategEffect"
+              pluginFormats="buildAU,buildStandalone,buildVST3">
+  <MAINGROUP id="hc8CY4" name="Reflections">
+    <GROUP id="{DCEFE801-4DBB-C277-88B7-778A018A304B}" name="Source">
+      <FILE id="VJIWVU" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
-      <FILE id="L9JALi" name="PluginProcessor.h" compile="0" resource="0"
+      <FILE id="uUpL1T" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="oABGlR" name="PluginEditor.cpp" compile="1" resource="0"
+      <FILE id="tEbGwc" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
-      <FILE id="j5BavL" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="McXQmF" name="DelayFeel.cpp" compile="1" resource="0" file="Source/DelayFeel.cpp"/>
-      <FILE id="MjIWwd" name="DelayFeel.h" compile="0" resource="0" file="Source/DelayFeel.h"/>
+      <FILE id="byKdlf" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="V3l1oG" name="DelayProcessor.cpp" compile="1" resource="0"
+            file="Source/DelayProcessor.cpp"/>
+      <FILE id="UOb4bi" name="DelayProcessor.h" compile="0" resource="0"
+            file="Source/DelayProcessor.h"/>
+      <FILE id="ieEkro" name="ReverbProcessor.cpp" compile="1" resource="0"
+            file="Source/ReverbProcessor.cpp"/>
+      <FILE id="RVmPPS" name="ReverbProcessor.h" compile="0" resource="0"
+            file="Source/ReverbProcessor.h"/>
+      <FILE id="bE6J6u" name="ReverbSliders.cpp" compile="1" resource="0"
+            file="Source/ReverbSliders.cpp"/>
+      <FILE id="TYIges" name="ReverbSliders.h" compile="0" resource="0" file="Source/ReverbSliders.h"/>
+      <FILE id="FKBLNa" name="DelaySliders.cpp" compile="1" resource="0"
+            file="Source/DelaySliders.cpp"/>
+      <FILE id="MJ4qN4" name="DelaySliders.h" compile="0" resource="0" file="Source/DelaySliders.h"/>
+      <FILE id="Z80vra" name="VerbFeel.cpp" compile="1" resource="0" file="Source/VerbFeel.cpp"/>
+      <FILE id="qIyzlt" name="VerbFeel.h" compile="0" resource="0" file="Source/VerbFeel.h"/>
+      <FILE id="IbP6dt" name="DelayFeel.cpp" compile="1" resource="0" file="Source/DelayFeel.cpp"/>
+      <FILE id="EpKJhf" name="DelayFeel.h" compile="0" resource="0" file="Source/DelayFeel.h"/>
+      <FILE id="UKSx1E" name="TempoSync.cpp" compile="1" resource="0" file="Source/TempoSync.cpp"/>
+      <FILE id="tIbdrW" name="TempoSync.h" compile="0" resource="0" file="Source/TempoSync.h"/>
+      <FILE id="njBBQ2" name="MixFeel.cpp" compile="1" resource="0" file="Source/MixFeel.cpp"/>
+      <FILE id="RrcMn2" name="MixFeel.h" compile="0" resource="0" file="Source/MixFeel.h"/>
+      <FILE id="HSOqsb" name="NameFeel.cpp" compile="1" resource="0" file="Source/NameFeel.cpp"/>
+      <FILE id="FpG3RH" name="NameFeel.h" compile="0" resource="0" file="Source/NameFeel.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
@@ -31,11 +55,11 @@
         <MODULEPATH id="juce_audio_utils" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_core" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_data_structures" path="../../../../../Applications/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_events" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_graphics" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../Applications/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>

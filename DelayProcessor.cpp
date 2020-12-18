@@ -10,7 +10,7 @@
 
 #include "DelayProcessor.h"
 
-DelayProcessor::DelayProcessor() : delayLine(96000), sendLine(96000), delayBuffer(2, 1024), previousDelayBuffer(2, 1024)
+DelayProcessor::DelayProcessor() : delayLine(1000000), sendLine(1000000), delayBuffer(2, 4096), previousDelayBuffer(2, 4096)
 {
     
 };

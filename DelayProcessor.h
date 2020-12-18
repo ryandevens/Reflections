@@ -39,8 +39,8 @@ public:
     float getFeedbackL();
     float getFeedbackR();
     
-    Atomic<float>   delayTimeL               { 200.0f };
-    Atomic<float>   delayTimeR               { 200.0f };
+    Atomic<float>   delayTimeL               { 0.0f };
+    Atomic<float>   delayTimeR               { 0.0f };
     Atomic<float>   feedbackLevelL           { 0.2f };
     Atomic<float>   feedbackLevelR           { 0.2f };
     Atomic<float>   dryInputLevel            { 0.2f };

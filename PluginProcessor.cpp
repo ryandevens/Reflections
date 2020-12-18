@@ -135,7 +135,7 @@ bool ReflectionsAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 void ReflectionsAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    //auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     if (mustUpdateProcessing)
@@ -155,15 +155,16 @@ void ReflectionsAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
     //buffer.clear();
     buffer.applyGain(0, buffer.getNumSamples(), 1.f-mix.get());
-    for(int channel = 0; channel < totalNumOutputChannels; ++channel)
+    
+    for(int channel = 0; channel < totalNumOutputChannels; channel++)
     {
         buffer.addFrom(channel, 0, dBuffer, channel, 0, buffer.getNumSamples(), delayOutputLevel.get() * mix.get());
         buffer.addFrom(channel, 0, vBuffer, channel, 0, buffer.getNumSamples(), verbOutputLevel.get() * mix.get());
     }
     
     // Here we store the previous buffer at the end of the process block to be ready for next block
-    delayProcessor.storePreviousBuffer();
-    reverbProcessor.storePreviousBuffer();
+    //delayProcessor.storePreviousBuffer();
+    //reverbProcessor.storePreviousBuffer();
     
     if (syncButtonState)
     {
@@ -290,10 +291,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout ReflectionsAudioProcessor::c
     parameters.push_back(std::make_unique<AudioParameterBool>  ("Sync", "Sync", false));
     
     parameters.push_back(std::make_unique<AudioParameterFloat> ("Time L", "Delay Time L",
-                                                               NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 200.f));
+                                                               NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 0.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Time R", "Delay Time R",
-                                                                NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 200.f));
+                                                                NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 0.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("FB L", "Feedback L",
                                                                 NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.1f));

@@ -18,7 +18,7 @@ DelaySliders::DelaySliders(ReflectionsAudioProcessor& processor) : mProcessor(pr
     setLookAndFeel(&delayFeel);
     /*------------------------------------------------------------------------*/
     button = std::make_unique<TextButton>("Link");
-    button->setBounds(121, 87, 30, 15);
+    button->setBounds(121, 95, 30, 15);
     button->setClickingTogglesState(true);
     button->addListener(this);
     addAndMakeVisible(button.get());
@@ -132,10 +132,7 @@ DelaySliders::DelaySliders(ReflectionsAudioProcessor& processor) : mProcessor(pr
     
     sendLookAndFeelChange();
     
-    delaySliderL->setValue(200.f);
-    delaySliderR->setValue(200.f);
-    feedbackSliderL->setValue(0.2f);
-    feedbackSliderR->setValue(0.2f);
+    
     setSize (275, 275);
 
 }
@@ -155,13 +152,13 @@ void DelaySliders::paint (juce::Graphics& g)
     juce::Path vertPath;
     vertPath.startNewSubPath (juce::Point<float> (134, 10));
     vertPath.lineTo (juce::Point<float> (135, 10));
-    vertPath.lineTo (juce::Point<float> (135, 82));
-    vertPath.lineTo (juce::Point<float> (134, 82));
+    vertPath.lineTo (juce::Point<float> (135, 69));
+    vertPath.lineTo (juce::Point<float> (134, 69));
     vertPath.closeSubPath();
     
     juce::Path vertPath2;
-    vertPath2.startNewSubPath (juce::Point<float> (134, 107));
-    vertPath2.lineTo (juce::Point<float> (135, 107));
+    vertPath2.startNewSubPath (juce::Point<float> (134, 112));
+    vertPath2.lineTo (juce::Point<float> (135, 112));
     vertPath2.lineTo (juce::Point<float> (135, 167));
     vertPath2.lineTo (juce::Point<float> (134, 167));
     vertPath2.closeSubPath();

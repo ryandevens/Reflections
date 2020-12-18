@@ -10,7 +10,7 @@
 
 #include "ReverbProcessor.h"
 
-ReverbProcessor::ReverbProcessor() : sendLine(96000), verbBuffer(2, 1024), previousVerbBuffer(2, 1024)
+ReverbProcessor::ReverbProcessor() : sendLine(1000000), verbBuffer(2, 4096), previousVerbBuffer(2, 4096)
 {
     
 };
@@ -103,14 +103,22 @@ void ReverbProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& de
 {
     verbBuffer.makeCopyOf(buffer);
     verbBuffer.applyGain(dryInputLevel.get());
-    // add sample values from our delayBuffer to our verbBuffer so they get sent through the reverb
-    for(int channel = 0; channel < 2; ++channel)
+        // add sample values from our delayBuffer to our verbBuffer so they get sent through the reverb
+    for(int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
         verbBuffer.addFrom(channel, 0,  delayBuffer, channel, 0, verbBuffer.getNumSamples(), delaySendLevel.get());
     }
-    float* const left = verbBuffer.getWritePointer(0);
-    float* const right = verbBuffer.getWritePointer(1);
-    reverb.processStereo(left, right, verbBuffer.getNumSamples());
+    if (verbBuffer.getNumChannels() <= 1)
+    {
+        reverb.processMono(verbBuffer.getWritePointer(0), buffer.getNumSamples());
+    }
+    else
+    {
+//        float* const left = verbBuffer.getWritePointer(0);
+//        float* const right = verbBuffer.getWritePointer(1);
+        reverb.processStereo(verbBuffer.getWritePointer(0), verbBuffer.getWritePointer(1), verbBuffer.getNumSamples());
+    }
+    
     
     auto verbBufferRead = verbBuffer.getArrayOfReadPointers();
     
