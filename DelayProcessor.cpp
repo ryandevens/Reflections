@@ -45,14 +45,13 @@ AudioBuffer<float>& DelayProcessor::getPreviousDelayBuffer()
     previousDelayBuffer.clear();
     auto previousDelayBufferWrite = previousDelayBuffer.getArrayOfWritePointers();
     
-    Array<float> dTimes(delaySmoothedL.getCurrentValue(), delaySmoothedR.getCurrentValue());
     
     for (int i = 0; i < previousDelayBuffer.getNumSamples(); ++i)
     {
         
-        for (int channel = 0; channel < dTimes.size(); ++channel)
+        for (int channel = 0; channel < previousDelayBuffer.getNumChannels(); ++channel)
         {
-            float wetSample= sendLine.popSample(channel, dTimes[channel], true);
+            float wetSample= sendLine.popSample(channel, mSampleRate, true);
             previousDelayBufferWrite[channel][i] = wetSample;
         }
     }
