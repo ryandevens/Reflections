@@ -12,7 +12,7 @@
 
 DelayProcessor::DelayProcessor() : delayLine(1000000), sendLine(1000000), delayBuffer(2, 4096), previousDelayBuffer(2, 4096)
 {
-    
+
 };
 
 DelayProcessor::~DelayProcessor(){};
@@ -42,33 +42,19 @@ AudioBuffer<float>& DelayProcessor::getDelayBuffer()
 
 AudioBuffer<float>& DelayProcessor::getPreviousDelayBuffer()
 {
+    previousDelayBuffer.clear();
     auto previousDelayBufferWrite = previousDelayBuffer.getArrayOfWritePointers();
     
-    auto dTimeL = delaySmoothedL.getCurrentValue();
-    auto dTimeR = delaySmoothedR.getCurrentValue();
-    
-//    delaySmoothedL.setTargetValue(dTimeL * mSampleRate / 1000.0);
-//    delaySmoothedR.setTargetValue(dTimeR * mSampleRate / 1000.0);
+    Array<float> dTimes(delaySmoothedL.getCurrentValue(), delaySmoothedR.getCurrentValue());
     
     for (int i = 0; i < previousDelayBuffer.getNumSamples(); ++i)
     {
         
-        
-        for (int channel = 0; channel < 2; ++channel)
+        for (int channel = 0; channel < dTimes.size(); ++channel)
         {
-            float wetSample;
-            if (channel == 0)
-            {
-                wetSample = sendLine.popSample(channel, dTimeL, true);
-                previousDelayBufferWrite[channel][i] = wetSample;
-            }
-            else
-            {
-                wetSample = sendLine.popSample(channel, dTimeR, true);
-                previousDelayBufferWrite[channel][i] = wetSample;
-            }
+            float wetSample= sendLine.popSample(channel, dTimes[channel], true);
+            previousDelayBufferWrite[channel][i] = wetSample;
         }
-        
     }
     
     return previousDelayBuffer;
@@ -99,12 +85,12 @@ void DelayProcessor::reset()
 
 float DelayProcessor::getDelayL()
 {
-    return delayTimeL.get();
+    return delaySmoothedL.getCurrentValue();
 }
 
 float DelayProcessor::getDelayR()
 {
-    return delayTimeR.get();
+    return delaySmoothedR.getCurrentValue();
 }
 
 float DelayProcessor::getFeedbackL()
@@ -124,16 +110,15 @@ void DelayProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& ver
     delayBuffer.clear();
     auto delayBufferWrite = delayBuffer.getArrayOfWritePointers();
     
-    int totalNumInputChannels = buffer.getNumChannels();
-    
+    int numInputChannels = buffer.getNumChannels();
+
+    Array<float> fbArray(feedbackLevelL.get(), feedbackLevelR.get());
+
     for (int i = 0; i < buffer.getNumSamples(); ++i)
     {
-        auto dTimeL = delaySmoothedL.getNextValue();
-        auto dTimeR = delaySmoothedR.getNextValue();
-        auto fbL = feedbackLevelL.get();
-        auto fbR = feedbackLevelR.get();
-        
-        for (int channel = 0; channel < totalNumInputChannels; ++channel)
+        Array<float> dTimes(delaySmoothedL.getNextValue(), delaySmoothedR.getNextValue());
+
+        for (int channel = 0; channel < numInputChannels; ++channel)
         {
             float drySample = processorBufferRead[channel][i];
             drySample *= dryInputLevel.get();
@@ -141,32 +126,15 @@ void DelayProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& ver
             float verbSample = verbBufferRead[channel][i];
             verbSample *= verbSendLevel.get();
             
-    
-            if (channel == 0)
-            {
-                delayLine.pushSample(channel, drySample + verbSample + lastOutput[channel]);
-                
-                auto wetSample = delayLine.popSample(channel, dTimeL, true);
-                
-                delayBufferWrite[channel][i] = wetSample;
-                
-                sendLine.pushSample(channel, wetSample);
-                
-                lastOutput[channel] = wetSample * fbL;
-            }
-            else
-            {
-                delayLine.pushSample(channel, drySample + verbSample + lastOutput[channel]);
-                
-                auto wetSample = delayLine.popSample(channel, dTimeR, true);
-                
-                delayBufferWrite[channel][i] = wetSample;
-                
-                sendLine.pushSample(channel, wetSample);
-                
-                lastOutput[channel] = wetSample * fbR;
-            }
-            
+            delayLine.pushSample(channel, drySample + verbSample + lastOutput[channel]);
+
+            auto wetSample = delayLine.popSample(channel, dTimes[channel], true);
+
+            delayBufferWrite[channel][i] = wetSample;
+
+            sendLine.pushSample(channel, wetSample);
+
+            lastOutput[channel] = wetSample * fbArray[channel];
         }
         
     }

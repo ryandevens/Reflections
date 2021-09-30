@@ -29,22 +29,14 @@ public:
     
     void reset();
     
-    void process(AudioBuffer<float>& buffer, AudioBuffer<float>& verbBuffer);
-    
-    bool getCurrentPosition (AudioPlayHead::CurrentPositionInfo& result);
-    
+    void process(AudioBuffer<float>& buffer, AudioBuffer<float>& verbBuffer);    
     
     float getDelayL();
     float getDelayR();
     float getFeedbackL();
     float getFeedbackR();
+
     
-    Atomic<float>   delayTimeL               { 0.0f };
-    Atomic<float>   delayTimeR               { 0.0f };
-    Atomic<float>   feedbackLevelL           { 0.2f };
-    Atomic<float>   feedbackLevelR           { 0.2f };
-    Atomic<float>   dryInputLevel            { 0.2f };
-    Atomic<float>   verbSendLevel            { 0.2f };
    
 private:
     dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine;
@@ -55,12 +47,18 @@ private:
     
     double mSampleRate;
 
-    float verbFeedbackCoeff = 0.2f;
+    float verbFeedbackCoeff = 0.f;
     
     juce::SmoothedValue<float, ValueSmoothingTypes::Linear> delaySmoothedL;
     juce::SmoothedValue<float, ValueSmoothingTypes::Linear> delaySmoothedR;
-    std::vector<float> lastOutput { 2 };
-    
-    
+
+    std::vector<float> lastOutput { 0.f, 0.f };
+
+
+    Atomic<float>   feedbackLevelL{ 0.f };
+    Atomic<float>   feedbackLevelR{ 0.f };
+
+    Atomic<float>   dryInputLevel{ 0.2f };
+    Atomic<float>   verbSendLevel{ 0.2f };
     
 };
