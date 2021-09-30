@@ -93,6 +93,8 @@ void VerbFeel::drawButtonBackground(Graphics& g, Button& button, const Colour& b
     {
         g.setColour(button.findColour(TextButton::buttonColourId));
         g.fillAll();
+        g.setColour(button.findColour(TextButton::buttonOnColourId));
+        g.drawRoundedRectangle(button.getLocalBounds().toFloat(), 2.f, 2.f);
     }
     
     

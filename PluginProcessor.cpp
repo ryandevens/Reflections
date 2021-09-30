@@ -141,37 +141,55 @@ void ReflectionsAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     if (mustUpdateProcessing)
         update();
     
-    
-    // initially just buffers full of zeroes, then consider this the previous buffer
-    AudioBuffer<float>& dBufferPrev = delayProcessor.getPreviousDelayBuffer();
-    AudioBuffer<float>& vBufferPrev = reverbProcessor.getPreviousVerbBuffer();
-    
-    // process the audio buffer with the "previous" processorbuffer
-    delayProcessor.process(buffer, vBufferPrev);
-    reverbProcessor.process(buffer, dBufferPrev);
-    
-    AudioBuffer<float>& dBuffer = delayProcessor.getDelayBuffer();
-    AudioBuffer<float>& vBuffer = reverbProcessor.getVerbBuffer();
 
-    //buffer.clear();
-    buffer.applyGain(0, buffer.getNumSamples(), 1.f-mix.get());
-    
-    for(int channel = 0; channel < totalNumOutputChannels; channel++)
+    if(isProcessing.get())
     {
-        buffer.addFrom(channel, 0, dBuffer, channel, 0, buffer.getNumSamples(), delayOutputLevel.get() * mix.get());
-        buffer.addFrom(channel, 0, vBuffer, channel, 0, buffer.getNumSamples(), verbOutputLevel.get() * mix.get());
+        // initially just buffers full of zeroes, then consider this the previous buffer
+        AudioBuffer<float>& dBufferPrev = delayProcessor.getPreviousDelayBuffer();
+        AudioBuffer<float>& vBufferPrev = reverbProcessor.getPreviousVerbBuffer();
+        
+        // process the audio buffer with the "previous" processorbuffer
+        delayProcessor.process(buffer, vBufferPrev);
+        reverbProcessor.process(buffer, dBufferPrev);
+        
+        AudioBuffer<float>& dBuffer = delayProcessor.getDelayBuffer();
+        AudioBuffer<float>& vBuffer = reverbProcessor.getVerbBuffer();
+
+        buffer.applyGain(0, buffer.getNumSamples(), 1.f-mix.get());
+        
+        if(isFirstTime)
+        {
+            dBuffer.applyGain(0, dBuffer.getNumSamples(), 0.f);
+            vBuffer.applyGain(0, vBuffer.getNumSamples(), 0.f);
+            
+            if(safetyCounter == 0)
+            {
+                isFirstTime = false; // ratchet attempt to stop notorious 'Reflections Blast'
+            }
+            safetyCounter--;
+        }
+        else
+        {
+            dBuffer.applyGain(0, dBuffer.getNumSamples(), mix.get());
+            vBuffer.applyGain(0, vBuffer.getNumSamples(), mix.get());
+        }
+        
+
+        
+        for(int channel = 0; channel < totalNumOutputChannels; channel++)
+        {
+            buffer.addFrom(channel, 0, dBuffer, channel, 0, buffer.getNumSamples());
+            buffer.addFrom(channel, 0, vBuffer, channel, 0, buffer.getNumSamples());
+        }
+        
+        if (syncButtonState)
+        {
+            playHead = this->getPlayHead();
+            playHead->getCurrentPosition(currentPos);
+            tempoSync.setTempo(currentPos.bpm, currentPos.timeSigNumerator, currentPos.timeSigDenominator);
+        }
     }
     
-    // Here we store the previous buffer at the end of the process block to be ready for next block
-    //delayProcessor.storePreviousBuffer();
-    //reverbProcessor.storePreviousBuffer();
-    
-    if (syncButtonState)
-    {
-        playHead = this->getPlayHead();
-        playHead->getCurrentPosition(currentPos);
-        tempoSync.setTempo(currentPos.bpm, currentPos.timeSigNumerator, currentPos.timeSigDenominator);
-    }
     
     //outputAnalyser.addAudioData (buffer, 0, getTotalNumOutputChannels());
 }
@@ -268,7 +286,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout ReflectionsAudioProcessor::c
     parameters.push_back(std::make_unique<AudioParameterBool>  ("Verb Freeze", "Verb Freeze", false));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Size", "Size",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.5f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Damping", "Damping",
                                                                 NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
@@ -280,10 +298,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout ReflectionsAudioProcessor::c
                                                                 NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Verb Output", "Verb Output",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.5f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Verb Send", "Verb Send",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.1f));
     
     /*------------------------------------------------------------------------*/
     parameters.push_back(std::make_unique<AudioParameterBool>  ("Delay Link", "Delay Link", false));
@@ -291,25 +309,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout ReflectionsAudioProcessor::c
     parameters.push_back(std::make_unique<AudioParameterBool>  ("Sync", "Sync", false));
     
     parameters.push_back(std::make_unique<AudioParameterFloat> ("Time L", "Delay Time L",
-                                                               NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 0.f));
+                                                               NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 300.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Time R", "Delay Time R",
-                                                                NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 0.f));
+                                                                NormalisableRange<float> (0.0f, 2000.f, 1.f, 1.0f), 300.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("FB L", "Feedback L",
-                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.1f));
+                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("FB R", "Feedback R",
-                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.1f));
+                                                                NormalisableRange<float> (0.0f, 1.0f, 0.01f, 1.0f), 0.f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Input", "Delay Input",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.6f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Output", "Delay Output",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.2f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.5f));
    
     parameters.push_back (std::make_unique<AudioParameterFloat>("Delay Send", "Delay Send",
-                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.1f));
+                                                                NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.3f));
     
     parameters.push_back (std::make_unique<AudioParameterFloat>("Mix", "Mix",
                                                                 NormalisableRange<float> (0.0f, 1.f, 0.01f, 1.0f), 0.5f));
@@ -351,3 +369,9 @@ bool ReflectionsAudioProcessor::getSyncButtonState()
     return syncButtonState;
 }
 
+void ReflectionsAudioProcessor::setProcessingState(bool shouldProcess)
+{
+    isProcessing = shouldProcess;
+    isFirstTime = shouldProcess;
+    safetyCounter = 5;
+}

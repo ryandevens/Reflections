@@ -2,41 +2,42 @@
 
 <JUCERPROJECT id="nRYRfr" name="Reflections" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
-              companyName="Phonon" pluginVST3Category="Delay,Fx,Reverb" pluginVSTCategory="kPlugCategEffect"
-              pluginFormats="buildAU,buildStandalone,buildVST3">
+              companyName="recluse-audio" pluginVST3Category="Delay,Fx,Reverb"
+              pluginVSTCategory="kPlugCategEffect" pluginFormats="buildAU,buildStandalone,buildVST3"
+              version="1.0.1">
   <MAINGROUP id="hc8CY4" name="Reflections">
     <GROUP id="{DCEFE801-4DBB-C277-88B7-778A018A304B}" name="Source">
-      <FILE id="VJIWVU" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="Source/PluginProcessor.cpp"/>
-      <FILE id="uUpL1T" name="PluginProcessor.h" compile="0" resource="0"
-            file="Source/PluginProcessor.h"/>
-      <FILE id="tEbGwc" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="byKdlf" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="V3l1oG" name="DelayProcessor.cpp" compile="1" resource="0"
-            file="Source/DelayProcessor.cpp"/>
-      <FILE id="UOb4bi" name="DelayProcessor.h" compile="0" resource="0"
-            file="Source/DelayProcessor.h"/>
-      <FILE id="ieEkro" name="ReverbProcessor.cpp" compile="1" resource="0"
-            file="Source/ReverbProcessor.cpp"/>
-      <FILE id="RVmPPS" name="ReverbProcessor.h" compile="0" resource="0"
-            file="Source/ReverbProcessor.h"/>
-      <FILE id="bE6J6u" name="ReverbSliders.cpp" compile="1" resource="0"
-            file="Source/ReverbSliders.cpp"/>
-      <FILE id="TYIges" name="ReverbSliders.h" compile="0" resource="0" file="Source/ReverbSliders.h"/>
-      <FILE id="FKBLNa" name="DelaySliders.cpp" compile="1" resource="0"
-            file="Source/DelaySliders.cpp"/>
-      <FILE id="MJ4qN4" name="DelaySliders.h" compile="0" resource="0" file="Source/DelaySliders.h"/>
-      <FILE id="Z80vra" name="VerbFeel.cpp" compile="1" resource="0" file="Source/VerbFeel.cpp"/>
-      <FILE id="qIyzlt" name="VerbFeel.h" compile="0" resource="0" file="Source/VerbFeel.h"/>
-      <FILE id="IbP6dt" name="DelayFeel.cpp" compile="1" resource="0" file="Source/DelayFeel.cpp"/>
-      <FILE id="EpKJhf" name="DelayFeel.h" compile="0" resource="0" file="Source/DelayFeel.h"/>
-      <FILE id="UKSx1E" name="TempoSync.cpp" compile="1" resource="0" file="Source/TempoSync.cpp"/>
-      <FILE id="tIbdrW" name="TempoSync.h" compile="0" resource="0" file="Source/TempoSync.h"/>
-      <FILE id="njBBQ2" name="MixFeel.cpp" compile="1" resource="0" file="Source/MixFeel.cpp"/>
-      <FILE id="RrcMn2" name="MixFeel.h" compile="0" resource="0" file="Source/MixFeel.h"/>
-      <FILE id="HSOqsb" name="NameFeel.cpp" compile="1" resource="0" file="Source/NameFeel.cpp"/>
-      <FILE id="FpG3RH" name="NameFeel.h" compile="0" resource="0" file="Source/NameFeel.h"/>
+      <FILE id="YtI5ER" name="DelayFeel.cpp" compile="1" resource="0" file="DelayFeel.cpp"/>
+      <FILE id="j06RO6" name="DelayFeel.h" compile="0" resource="0" file="DelayFeel.h"/>
+      <FILE id="Om4K1C" name="DelayProcessor.cpp" compile="1" resource="0"
+            file="DelayProcessor.cpp"/>
+      <FILE id="W9KGLu" name="DelayProcessor.h" compile="0" resource="0"
+            file="DelayProcessor.h"/>
+      <FILE id="Ic2uuo" name="DelaySliders.cpp" compile="1" resource="0"
+            file="DelaySliders.cpp"/>
+      <FILE id="HyBLkd" name="DelaySliders.h" compile="0" resource="0" file="DelaySliders.h"/>
+      <FILE id="eU76QA" name="MixFeel.cpp" compile="1" resource="0" file="MixFeel.cpp"/>
+      <FILE id="lggNrn" name="MixFeel.h" compile="0" resource="0" file="MixFeel.h"/>
+      <FILE id="WhIEx5" name="NameFeel.cpp" compile="1" resource="0" file="NameFeel.cpp"/>
+      <FILE id="JBUHhZ" name="NameFeel.h" compile="0" resource="0" file="NameFeel.h"/>
+      <FILE id="A6o32P" name="PluginEditor.cpp" compile="1" resource="0"
+            file="PluginEditor.cpp"/>
+      <FILE id="lBCPFy" name="PluginEditor.h" compile="0" resource="0" file="PluginEditor.h"/>
+      <FILE id="dToL7Q" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="PluginProcessor.cpp"/>
+      <FILE id="ZLYgVU" name="PluginProcessor.h" compile="0" resource="0"
+            file="PluginProcessor.h"/>
+      <FILE id="KNMB8I" name="ReverbProcessor.cpp" compile="1" resource="0"
+            file="ReverbProcessor.cpp"/>
+      <FILE id="uErOJ7" name="ReverbProcessor.h" compile="0" resource="0"
+            file="ReverbProcessor.h"/>
+      <FILE id="rNyIV9" name="ReverbSliders.cpp" compile="1" resource="0"
+            file="ReverbSliders.cpp"/>
+      <FILE id="uvhQqa" name="ReverbSliders.h" compile="0" resource="0" file="ReverbSliders.h"/>
+      <FILE id="rxFAMf" name="TempoSync.cpp" compile="1" resource="0" file="TempoSync.cpp"/>
+      <FILE id="Q1FFAt" name="TempoSync.h" compile="0" resource="0" file="TempoSync.h"/>
+      <FILE id="mm2NEJ" name="VerbFeel.cpp" compile="1" resource="0" file="VerbFeel.cpp"/>
+      <FILE id="WWGQX0" name="VerbFeel.h" compile="0" resource="0" file="VerbFeel.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>

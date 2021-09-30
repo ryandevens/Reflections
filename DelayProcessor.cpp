@@ -27,8 +27,12 @@ void DelayProcessor::init(double sampleRate, int samplesPerBlock)
     mSampleRate = sampleRate;
     delayLine.prepare({ mSampleRate, (uint32) samplesPerBlock, 2 });
     sendLine.prepare({ mSampleRate, (uint32) samplesPerBlock, 2 });
-    delaySmoothedL.reset(mSampleRate, 1.0);
-    delaySmoothedR.reset(mSampleRate, 1.0);
+    
+    delayLine.reset();
+    sendLine.reset();
+    
+    delaySmoothedL.reset(mSampleRate, 0.5);
+    delaySmoothedR.reset(mSampleRate, 0.5);
 }
 
 AudioBuffer<float>& DelayProcessor::getDelayBuffer()
@@ -40,10 +44,15 @@ AudioBuffer<float>& DelayProcessor::getPreviousDelayBuffer()
 {
     auto previousDelayBufferWrite = previousDelayBuffer.getArrayOfWritePointers();
     
+    auto dTimeL = delaySmoothedL.getCurrentValue();
+    auto dTimeR = delaySmoothedR.getCurrentValue();
+    
+//    delaySmoothedL.setTargetValue(dTimeL * mSampleRate / 1000.0);
+//    delaySmoothedR.setTargetValue(dTimeR * mSampleRate / 1000.0);
+    
     for (int i = 0; i < previousDelayBuffer.getNumSamples(); ++i)
     {
-        auto dTimeL = delaySmoothedL.getNextValue();
-        auto dTimeR = delaySmoothedR.getNextValue();
+        
         
         for (int channel = 0; channel < 2; ++channel)
         {
@@ -74,15 +83,12 @@ void DelayProcessor::storePreviousBuffer()
 
 void DelayProcessor::setParameters(float dTimeL, float dTimeR, float fbL, float fbR, float inputLevel, float sendLevel)
 {
-    delayTimeL = dTimeL;
-    delayTimeR = dTimeR;
+    delaySmoothedL.setTargetValue(dTimeL * mSampleRate / 1000.0); // convert to samples
+    delaySmoothedR.setTargetValue(dTimeR * mSampleRate / 1000.0); 
     feedbackLevelL = fbL;
     feedbackLevelR = fbR;
     dryInputLevel = inputLevel;
     verbSendLevel = sendLevel;
-    
-    delaySmoothedL.setTargetValue(delayTimeL.get() * mSampleRate / 1000); // delay in samples
-    delaySmoothedR.setTargetValue(delayTimeR.get() * mSampleRate / 1000);
 
 }
 
@@ -115,6 +121,7 @@ void DelayProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& ver
 {
     auto processorBufferRead = buffer.getArrayOfReadPointers();
     auto verbBufferRead = verbBuffer.getArrayOfReadPointers();
+    delayBuffer.clear();
     auto delayBufferWrite = delayBuffer.getArrayOfWritePointers();
     
     int totalNumInputChannels = buffer.getNumChannels();
@@ -134,13 +141,12 @@ void DelayProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& ver
             float verbSample = verbBufferRead[channel][i];
             verbSample *= verbSendLevel.get();
             
-            float wetSample;
     
             if (channel == 0)
             {
                 delayLine.pushSample(channel, drySample + verbSample + lastOutput[channel]);
                 
-                wetSample = delayLine.popSample(channel, dTimeL, true);
+                auto wetSample = delayLine.popSample(channel, dTimeL, true);
                 
                 delayBufferWrite[channel][i] = wetSample;
                 
@@ -152,7 +158,7 @@ void DelayProcessor::process(AudioBuffer<float>& buffer, AudioBuffer<float>& ver
             {
                 delayLine.pushSample(channel, drySample + verbSample + lastOutput[channel]);
                 
-                wetSample = delayLine.popSample(channel, dTimeR, true);
+                auto wetSample = delayLine.popSample(channel, dTimeR, true);
                 
                 delayBufferWrite[channel][i] = wetSample;
                 

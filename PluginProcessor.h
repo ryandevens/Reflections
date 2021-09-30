@@ -71,6 +71,8 @@ public:
     AudioProcessorValueTreeState::ParameterLayout createParameters();
     
     void update();
+    
+    void setProcessingState(bool isProcessing);
 
 private:
     ReverbProcessor     reverbProcessor;
@@ -82,7 +84,7 @@ private:
     
     //Analyser<float>   outputAnalyser;
     
-    
+    Atomic<bool> isProcessing { false };
     
     Atomic<float> delayOutputLevel  { 0.0f };
     Atomic<float> verbOutputLevel   { 0.0f };
@@ -91,6 +93,8 @@ private:
     bool verbButtonState = false;
     bool delayButtonState = false;
     bool syncButtonState = false;
+    bool isFirstTime = true;
+    int safetyCounter = 5;
     
     bool mustUpdateProcessing { false };
     

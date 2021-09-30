@@ -47,8 +47,8 @@ public:
     Atomic<float>   verbSendLevel            { 0.2f };
    
 private:
-    dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
-    dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> sendLine;
+    dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine;
+    dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> sendLine;
     
     AudioBuffer<float> delayBuffer;
     AudioBuffer<float> previousDelayBuffer;

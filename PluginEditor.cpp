@@ -13,6 +13,7 @@
 ReflectionsAudioProcessorEditor::ReflectionsAudioProcessorEditor (ReflectionsAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    setResizable(false, false);
     addAndMakeVisible(delaySliders);
     delaySliders.setTopLeftPosition(10, 40);
     addAndMakeVisible(reverbSliders);
@@ -20,8 +21,18 @@ ReflectionsAudioProcessorEditor::ReflectionsAudioProcessorEditor (ReflectionsAud
     
     setLookAndFeel(&mixFeel);
     
+    processingButton = std::make_unique<TextButton>();
+    processingButton->setButtonText("Kill");
+    processingButton->setClickingTogglesState(true);
+    processingButton->setLookAndFeel(&verbFeel);
+    processingButton->setColour(TextButton::buttonColourId, Colours::red.withAlpha(0.1f));
+    processingButton->setColour(TextButton::buttonOnColourId, Colours::red.brighter().withAlpha(0.6f));
+    processingButton->setToggleState(true, NotificationType::dontSendNotification);
+    processingButton->addListener(this);
+    addAndMakeVisible(processingButton.get());
+    
     mixSlider = std::make_unique<Slider>(Slider::SliderStyle::LinearBarVertical, Slider::TextBoxBelow);
-    mixSlider->setBounds(302, 65, 40, 240);
+    mixSlider->setBounds(302, 80, 40, 227);
     addAndMakeVisible (mixSlider.get());
     
     mixLabel = std::make_unique<Label>("", "Mix");
@@ -60,8 +71,18 @@ void ReflectionsAudioProcessorEditor::paint (juce::Graphics& g)
 
 void ReflectionsAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    processingButton->setBoundsRelative(0.45f, 0.13f, 0.1f, 0.05f);
 }
+
+void ReflectionsAudioProcessorEditor::buttonClicked(Button* b)
+{
+    if(b == processingButton.get())
+    {
+        audioProcessor.setProcessingState(!processingButton->getToggleState());
+    }
+    
+}
+
+
 
 
